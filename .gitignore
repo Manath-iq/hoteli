@@ -1,0 +1,11 @@
+.DS_Store
+.vite/
+# Local assets from earlier variations of the edit
+assets/contact.jpg
+assets/display.ttf
+assets/edit.mp4
+assets/grain.png
+assets/hold.jpg
+assets/ocean-cut.jpg
+assets/opening.jpg
+tools/render_edit.py
