@@ -66,37 +66,68 @@ export function renderPhoto(time) {
   sample(photoEffects,time);
 }
 
+const easeOut = 'cubic-bezier(.23,1,.32,1)';
 const wordReveal = [
-  { opacity: 0, transform: 'translateY(.22em)', clipPath: 'inset(0 0 85% 0)' },
-  { opacity: 1, transform: 'translateY(0)', clipPath: 'inset(-12%)' }
+  { opacity: 0, transform: 'translateY(.12em)', clipPath: 'inset(0 0 70% 0)' },
+  { opacity: 1, transform: 'none', clipPath: 'inset(-10%)' }
 ];
+const whisper = [{ opacity: 0 }, { opacity: 1 }];
 const drop = [
   { opacity: 0, transform: 'translateY(-.55em) rotate(-4deg)' },
-  { offset: .62, opacity: 1, transform: 'translateY(.055em) rotate(1deg)' },
-  { transform: 'translateY(0)' }
+  { offset: .68, opacity: 1, transform: 'translateY(.065em) rotate(1deg)' },
+  { opacity: 1, transform: 'none' }
 ];
-const freeze = [
-  { opacity: .2, transform: 'translateX(.18em)', textShadow: '-.13em 0 #eee8ce' },
-  { offset: .45, opacity: 1, transform: 'translateX(0)', textShadow: '-.045em 0 #eee8ce' },
-  { textShadow: '0 0 transparent' }
+const impact = [
+  { opacity: 0, transform: 'translateY(.1em) scale(.92,1.08)' },
+  { offset: .18, opacity: 1, transform: 'translateY(.03em) scale(1.12,.87)' },
+  { offset: .49, opacity: 1, transform: 'translateY(-.035em) scale(.985,1.05)' },
+  { opacity: 1, transform: 'none' }
+];
+const lock = [
+  { opacity: 0, transform: 'translateX(.16em) skewX(-7deg)' },
+  { offset: .38, opacity: 1, transform: 'none' },
+  { opacity: 1, transform: 'none' }
 ];
 const swell = [
   { opacity: 0, transform: 'translateY(.14em) rotate(2deg)' },
   { offset: .57, opacity: 1, transform: 'translateY(-.08em) rotate(-1deg)' },
-  { transform: 'translateY(0)' }
+  { opacity: 1, transform: 'none' }
 ];
-const stamped = new Set([3,11,21,30,35]);
+
+// Only the last spoken word receives the full impact. Leave the family passage quiet.
+const stamped = new Set([3, 11, 21, 30, 33, 35]);
+const endings = new Map([
+  [2, whisper], [16, whisper], [17, drop], [18, swell], [19, swell],
+  [22, lock], [26, lock], [27, whisper]
+]);
+const echoes = new Set([3, 22, 35]);
+
+function addEcho(word, text, start) {
+  const echo = document.createElement('i');
+  echo.className = 'echo';
+  echo.dataset.text = text;
+  echo.setAttribute('aria-hidden', 'true');
+  word.append(echo);
+  typeEffects.push(attach(echo, [
+    { opacity: 0, transform: 'none' },
+    { offset: .2, opacity: .8, transform: 'translate(.035em,-.04em)' },
+    { opacity: 0, transform: 'translate(.14em,-.25em)' }
+  ], start, .28));
+}
 
 export function composeLine(container, cue, index) {
   typeEffects.forEach(effect => effect.animation.cancel());
   typeEffects = [];
   container.replaceChildren();
   if (!cue) return;
-  const [start, accent, lead, tail] = cue;
-  for (const [part, text, entrance] of [['lead',lead,start],['tail',tail,accent]]) {
+
+  const parts = [
+    ['lead', cue.lead, cue.leadStarts],
+    ['tail', cue.tail, cue.tailStarts]
+  ];
+  for (const [part, text, starts] of parts) {
     const row = document.createElement('span');
     row.className = 'row ' + part;
-    if (part === 'tail' && stamped.has(index)) row.classList.add('stamp');
     container.append(row);
     const pieces = text.split(' ');
     pieces.forEach((value, i) => {
@@ -104,20 +135,30 @@ export function composeLine(container, cue, index) {
       const word = document.createElement('span');
       word.className = 'word';
       word.textContent = value;
+      const isEnding = part === 'tail' && i === pieces.length - 1;
+      const punch = isEnding && stamped.has(index);
+      if (punch) word.classList.add('stamp');
       row.append(word);
-      if (reduceMotion.matches) return;
-      let frames = wordReveal;
-      if (part === 'tail') {
-        if (index === 17) frames = drop;
-        if (index === 26 || index === 22) frames = freeze;
-        if (index === 18 || index === 19) frames = swell;
-      }
-      const delay = i * Math.min(.038, .11 / pieces.length);
-      typeEffects.push(attach(word, frames, entrance + delay, frames === wordReveal ? .16 : .32, 'cubic-bezier(.19,.78,.24,1)'));
+
+      const start = starts[i];
+      let frames = isEnding ? endings.get(index) || wordReveal : wordReveal;
+      if (punch) frames = impact;
+      if (reduceMotion.matches || index === 16) frames = whisper;
+      const duration = frames === wordReveal || reduceMotion.matches ? .12 : .26;
+      typeEffects.push(attach(word, frames, start, duration, easeOut));
+      if (isEnding && echoes.has(index) && !reduceMotion.matches) addEcho(word, value, start);
     });
+
+    if (part === 'lead' && stamped.has(index)) {
+      typeEffects.push(attach(row, [{opacity: 1}, {opacity: .66}], cue.tailStarts.at(-1), .18));
+    }
+    // A short breath before the stop, with the voice and video continuing through it.
+    if (part === 'lead' && index === 26) {
+      typeEffects.push(attach(row, [{opacity: 1}, {opacity: 0}], cue.accent - .16, .10));
+    }
   }
 }
 
 export function renderType(time) {
-  sample(typeEffects,time);
+  sample(typeEffects, time);
 }

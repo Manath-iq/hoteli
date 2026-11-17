@@ -58,11 +58,20 @@ video { filter: grayscale(1) contrast(1.14) brightness(.89); }
 .lyric span { display: block; overflow-wrap: break-word; }
 .lyric .tail { color: var(--accent); width: fit-content; }
 .lyric .waiting { visibility: hidden; }
-.lyric .stamp { color: #1e1c19; background: var(--accent); padding: 0 .1em .05em; transform: rotate(-2deg); }
+.lyric .stamp {
+  color: #1e1c19; background: var(--accent); padding: .015em .11em .06em;
+  font-size: 1.16em; line-height: .97; rotate: -2deg;
+}
+.lyric .echo {
+  position: absolute; inset: 0; pointer-events: none; font: inherit;
+  color: transparent; -webkit-text-stroke: 1px #fff2d9;
+}
+.lyric .echo::before { content: attr(data-text); }
+.lyric .stamp .echo { padding: inherit; }
 /* Keep animated words and photographs on independent planes above the fixed video. */
-.lyric .word { display: inline-block; }
+.lyric .word { position: relative; display: inline-block; transform-origin: 20% 88%; }
 .lyric .row { display: block; word-spacing: .065em; }
-.lyric .stamp { box-decoration-break: clone; }
+
 .prints { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .insert {
   visibility: hidden; position: absolute; margin: 0; right: 3.6%; width: 18%;

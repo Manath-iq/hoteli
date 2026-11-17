@@ -47,18 +47,24 @@ new ResizeObserver(() => {
 
 function renderScene() {
   const t = video.currentTime;
-  const hasCue = started && !video.ended && t < 50.9;
-  const index = hasCue ? cues.findLastIndex(cue => t >= cue[0]) : -1;
+  const hasCue = started;
+  const index = hasCue ? cues.findLastIndex(cue => t >= cue.start) : -1;
   cover.hidden = hasCue;
   lyric.hidden = !hasCue;
   if (index !== cueIndex) {
     cueIndex = index;
     composeLine(lyric, cues[index], index);
   }
-  if (hasCue) lyric.lastElementChild.classList.toggle('waiting', t < cues[index][1]);
+  if (hasCue) lyric.lastElementChild.classList.toggle('waiting', t < cues[index].accent);
   renderType(t);
   renderPhoto(hasCue ? t : -1);
 }
+
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => {
+  cueIndex = -1;
+  renderPhoto(-1);
+  renderScene();
+});
 
 function runScene() {
   renderScene();
