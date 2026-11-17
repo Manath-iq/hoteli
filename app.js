@@ -1,3 +1,4 @@
+import { composeLine, renderType, renderPhoto } from './motion.js';
 import { cues } from './lyrics.js';
 import { levels } from './waveform.js';
 
@@ -14,12 +15,9 @@ let hideTimer;
 
 const cover = document.querySelector('#cover');
 const lyric = document.querySelector('#lyric');
-const city = document.querySelector('#city');
-const ocean = document.querySelector('#ocean');
 const wave = document.querySelector('#wave');
 const time = document.querySelector('#time');
 const ctx = wave.getContext('2d');
-const stampCues = new Set([3, 11, 21, 30, 35]);
 let cueIndex = -1;
 let started = false;
 let animation = 0;
@@ -55,20 +53,11 @@ function renderScene() {
   lyric.hidden = !hasCue;
   if (index !== cueIndex) {
     cueIndex = index;
-    lyric.replaceChildren();
-    if (index >= 0) {
-      const lead = document.createElement('span');
-      lead.className = 'lead';
-      lead.textContent = cues[index][2];
-      const tail = document.createElement('span');
-      tail.className = stampCues.has(index) ? 'tail stamp' : 'tail';
-      tail.textContent = cues[index][3];
-      lyric.append(lead, tail);
-    }
+    composeLine(lyric, cues[index], index);
   }
   if (hasCue) lyric.lastElementChild.classList.toggle('waiting', t < cues[index][1]);
-  city.classList.toggle('visible', hasCue && t >= 18.02 && t < 19.86);
-  ocean.classList.toggle('visible', hasCue && t >= 26.37 && t < 28.22);
+  renderType(t);
+  renderPhoto(hasCue ? t : -1);
 }
 
 function runScene() {

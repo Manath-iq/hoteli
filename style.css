@@ -31,13 +31,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   position: relative; isolation: isolate; overflow: hidden; container-type: inline-size;
   width: min(100vw, 172svh, 1680px); height: min(100svh, 62vw, 980px); background: #20201e;
 }
-video, .insert {
+video {
   position: absolute; top: 0; right: 0; width: 65%; height: 100%;
   object-fit: cover; object-position: center 38%;
 }
 video { filter: grayscale(1) contrast(1.14) brightness(.89); }
-.insert { opacity: 0; pointer-events: none; transition: opacity 100ms linear; }
-.insert.visible { opacity: 1; }
 .shade {
   position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(90deg,#20201e 12%,#20201e 30%,#20201eea 36%,#20201e5e 49%,transparent 66%),
@@ -61,9 +59,25 @@ video { filter: grayscale(1) contrast(1.14) brightness(.89); }
 .lyric .tail { color: var(--accent); width: fit-content; }
 .lyric .waiting { visibility: hidden; }
 .lyric .stamp { color: #1e1c19; background: var(--accent); padding: 0 .1em .05em; transform: rotate(-2deg); }
-@media (prefers-reduced-motion: no-preference) {
-  .lyric .lead, .lyric .tail:not(.waiting) { animation: expose .14s ease-out both; }
-  @keyframes expose { from { clip-path: inset(0 0 90% 0); translate: 0 .06em; } to { clip-path: inset(-12%); } }
+/* Keep animated words and photographs on independent planes above the fixed video. */
+.lyric .word { display: inline-block; }
+.lyric .row { display: block; word-spacing: .065em; }
+.lyric .stamp { box-decoration-break: clone; }
+.prints { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.insert {
+  visibility: hidden; position: absolute; margin: 0; right: 3.6%; width: 18%;
+  background: #e9e3d6; padding: .36cqw; box-shadow: 1px 6px 16px #15131066;
+}
+.insert.visible { visibility: visible; }
+.insert img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.city { top: 15%; aspect-ratio: 4/5; transform: rotate(5deg); }
+.city img { object-position: 74% 50%; }
+.ocean { top: 44%; aspect-ratio: 1.16; transform: rotate(-6deg); padding-bottom: 1.6cqw; }
+.train { top: 12%; right: 4%; width: 13%; padding: 0; transform: rotate(5deg); }
+@media (max-aspect-ratio: 1/1) {
+  .city { width: 23%; top: 13%; right: 4.5%; }
+  .ocean { width: 24%; top: 24%; right: 4.5%; }
+  .train { width: 17%; top: 12%; right: 5%; }
 }
 .surface { position: absolute; inset: 0; width: 100%; height: 100%; }
 .controls {
@@ -89,7 +103,7 @@ time { font: 12px ui-monospace, monospace; white-space: nowrap; }
 .theater.expanded { position: fixed; inset: 0; z-index: 2; }
 @media (max-aspect-ratio: 1/1) {
   .screen { width: 100%; height: min(100svh,145vw); }
-  video,.insert { width: 100%; height: 88%; object-position: 54% 28%; }
+  video { width: 100%; height: 88%; object-position: 54% 28%; }
   .shade { background: linear-gradient(0deg,#1d1d1a 4%,#1e1e1dea 17%,#1d1d1dbb 32%,#1e1e1e26 61%,transparent 75%); }
   .cover,.lyric { left: 6%; top: auto; transform: none; bottom: max(16%,78px); }
   .cover h1 { font-size: 23cqw; }
